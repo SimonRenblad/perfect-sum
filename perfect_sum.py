@@ -1,33 +1,50 @@
+# by Simon Renblad
 
+# Solution:
+# - enumerates all combinations of n indices, where n goes from 1 to the number of elements in the array
+# - for a size n, combinations are represented as bitstrings where 1s are included in the sum and 0s are not
+# - the next bitstring (the Nth bitstring) is generated based on the previous one (the N-1th)
+# - guarantees the first solution will be the smallest set of indices,
+#   allowing for a better average-case complexity than enumerating over all possible combinations
 
+# Acceptable Inputs:
+# - integer values (positive, negative and zero) within the practical limit of the Python language
+# - strings*
+# - lists*
+# - potential other python objects that can be concatenated using '+' and compared with '=='
+#
+# * order matters for these, as A + B != B + A unless A == B for strings and lists
+
+# Limitations:
+# - if there are two sets of indices of smallest size, it will ONLY find one
+
+# function for returning smallest set of indices in 'array' for which the elements add up to 'target'
 def perfect_sum(array, target):
 
-    #declaring variables
     num_elements = len(array)
 
-    # solved recursively, hence need to keep track of previous combination (represented as binary)
+    # need to keep track of previous combination (represented as binary)
     previous_combination = [0]*num_elements
 
     # check sizes of the varying subsets
     for subset_size in range(1, num_elements + 1):
 
-        #check if last combination has been found
-        is_last_combination_of_size = False
-
-        #reset combination
+        # reset combination
         previous_combination = [0]*num_elements
 
         # final combination with a given number of 1s in binary representation
         final_combination_of_size = [0] * (num_elements - subset_size) + [1] * subset_size
 
-        # bitstring of N - 1 combination matches final combination bitstring, hence increase the subset_size and reset previous_combination
+        # iterate over combinations of size 'subset_size'
         while not str(final_combination_of_size) == str(previous_combination):
 
-            # first bit string
+            ## GENERATE COMBINATION AS BITSTRING
+
+            # first bitstring of size 'subset_size'
             if str(previous_combination) == str([0]*num_elements):
                 previous_combination = [1] * subset_size + [0] * (num_elements - subset_size)
 
-            # not first bit string
+            # not first bitstring of size 'subset_size'
             else:
 
                 # backwards passing index
@@ -39,14 +56,13 @@ def perfect_sum(array, target):
                 # loop until next combination is found
                 while i >= 0:
 
-                    # we only care about moving around the active bits
+                    # ignore 0s
                     if previous_combination[i] == 1:
 
                         # blocked i, increase depth and move pointed down
                         if i == (num_elements - 1) or previous_combination[i + 1] == 1:
                             depth += 1
                             i -= 1
-                            continue
 
                         # i not blocked, move forward bit and add past blocked bits according to depth variable
                         else:
@@ -69,55 +85,37 @@ def perfect_sum(array, target):
 
                             # combination created
                             break
+
+                    # 0 in previous combination, decrement backwards passing index
                     else:
                         i -= 1
+
+            ## SUM ELEMENTS AND CHECK
 
             # index list for printing
             indices = []
 
-            # sum variable
+            # sum variable, set as None to allow strings and lists as well
             sum_found = None
 
             # execute sum on combination
             for i, bit in enumerate(previous_combination):
+
                 if bit == 1:
+
                     indices.append(i)
+
                     if sum_found == None:
                         sum_found = array[i]
                     else:
                         sum_found += array[i]
 
-            # catch errors
-            if len(indices) != subset_size:
-                print("error encountered")
-                return
-
-            #check sum
+            #check sum, stop if found
             if sum_found == target:
                 return indices
 
+    #no indices found, return empty list
     return []
-
-
-### TESTING FUNCTIONS, IGNORE
-def run_test(input_arr, target, output):
-    result = perfect_sum(input_arr, target)
-    print(str(input_arr) + ", " + str(target) + ": " + str(result) + " " + str(output == result))
-
-def tests():
-   # run_test([2, 3, 4, 8], 2, [0])
-  #  run_test([2, 3, 4, 8], 8, [3])
- #   run_test([2, 3, 4, 8], 7, [1, 2])
-#    run_test([2, 3, 4, 8], 17, [0, 1, 2, 3])
-  #  run_test([], "horse", [])
-  #  run_test(["w", "h", "yp"], "wyp", [0, 2])
-  #  run_test([0.4, 2.3, 5.4, 7.2], 5.8, [0, 2]) FAILED -> PRECISION WITH FLOAT ISSUE
- #   run_test([-4, 2, 3, 8], 6, [0, 1, 3])
- run_test([39, 38, 6, 2], 46, [1, 2, 3])
-
-tests()
-
-
 
 
 
